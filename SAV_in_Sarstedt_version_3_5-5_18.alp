@@ -385,6 +385,21 @@ if(szenario == 2){
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1628077102153</Id>
+					<Name><![CDATA[anzahlLocations]]></Name>
+					<X>2380</X><Y>110</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[21]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 				<Variable Class="Parameter">
 					<Id>1604087921977</Id>
 					<Name><![CDATA[anzahlSAV]]></Name>
@@ -1352,20 +1367,17 @@ return distance;]]></Body>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[usePolicy]]></Name>
-							<Value Class="CodeValue">
-								<Code><![CDATA[true]]></Code>
-							</Value>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[policyFile]]></Name>
 							<Value Class="CodeValue">
-								<Code><![CDATA["C:\\Users\\Daryosch\\Desktop\\scm-lab\\AnyLogic\\SAV exports\\Sav5-M1-savinsarstedt-E1-Policy-Distance2.zip"]]></Code>
+								<Code><![CDATA["C:\\Users\\Daryosch\\Desktop\\scm-lab\\AnyLogic\\SAV exports\\Sav8-M1-savinsarstedt-E1-Policy-Mix.zip"]]></Code>
 							</Value>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[numberOfAgents]]></Name>
 							<Value Class="CodeValue">
-								<Code><![CDATA[anzahlSAV]]></Code>
+								<Code><![CDATA[anzahlLocations]]></Code>
 							</Value>
 						</Parameter>
 						<Parameter>
@@ -1373,15 +1385,27 @@ return distance;]]></Body>
 							<Value Class="CodeValue">
 								<Code><![CDATA[class Observations {
 
-	// SAV
-	double agentIndexId = sAVs.get(agentId).getIndex();
-	double sAVMobOrderSize = sAVs.get(agentId).auftragsliste.size();
-	double distanceSAVStillToBeDriven = sAVs.get(agentId).getSAVToBeDrivenDistance() / 1000.0;
-	double timeSAVToBeDriven = sAVs.get(agentId).getServiceTime();
-	double lastPosition = sAVs.get(agentId).getLastOrderIndex();
-	//double[] allDistances = sAVs.get(agentId).getSAVDistances();
-	double additionalTime = aiOrder != null ? sAVs.get(agentId).getAdditionalServiceTime(aiOrder.startLocation) : 0;
-	double additionalKM = aiOrder != null ? sAVs.get(agentId).getAdditionalDistance(aiOrder.startLocation) : 0;
+	// Locations
+	double agentIndex = locations.get(agentId).getIndex();
+	double triggeredOrderCounter = locations.get(agentId).locationCounter;
+	
+	// SAVs
+	double[] sAVMobOrderSize = locations.get(agentId).getSAVOrderSize();
+	double[] lastLocationFromSAV = locations.get(agentId).getSAVsLastPosition();
+		// Distance
+	double[] distancesToBeDrivenInM = locations.get(agentId).getToBeDrivenDistances();
+	double[] drivenDistancesInM = locations.get(agentId).getDistances();
+	double[] additionalDistancesFromSAVsInM = locations.get(agentId).getAdditionalDistancesFromSAVs();
+		// ServiceTime
+	double[] serviceTimeToBeDrivenInMin = locations.get(agentId).getToBeDrivenServiceTime();
+	double[] drivenServiceTimeInMin = locations.get(agentId).getServiceTime();
+	double[] additionalServiceTimeFromSAAVsInMin = locations.get(agentId).getAdditionalServiceTimeFromSAVs();
+
+	
+	// Current Order;
+	double orderDestination = aiOrder != null ? aiOrder.destinationLocation.getIndex() : 0;
+	double orderStartpoint = aiOrder != null ? aiOrder.startLocation.getIndex() : 0;
+	
 	
 	// Orders
 	 //double[] orders = sAVs.get(agentId).getCurrentOrders();
@@ -1391,12 +1415,7 @@ return distance;]]></Body>
 	 //double[] destination = sAVs.get(agentId).getOrderDestination();
 	 //double[] startpoint = sAVs.get(agentId).getOrderStartpoint();
 
-	// Current Order;
-	double orderDestination = aiOrder != null ? aiOrder.destinationLocation.getIndex() : 0;
-	double orderStartpoint = aiOrder != null ? aiOrder.startLocation.getIndex() : 0;
 	
-	// Locations
-	double [] locationsTrigOrder = locationsTriggeredOrders; 
 	
 }]]></Code>
 							</Value>
@@ -1406,18 +1425,16 @@ return distance;]]></Body>
 							<Value Class="CodeValue">
 								<Code><![CDATA[class Metrics {
 	// individual reward
-    double vehicleDrivenKMReward = sAVs.get(agentId).gefahreneKilometer / 1000.0;
-    //double vehicleWorkingTime = sAVs.get(agentId).workingTime / 60.0;
-    double vehicleServiceTime = sAVs.get(agentId).serviceTime / 60;
-    //double vehicleDiffernceServiceTimeToAverage = tagesServicezeitTotal/anzahlSAV - sAVs.get(agentId).serviceTime;
-    //double vehicleDiffernceDrivenKMToAverage = tagesKilometerTotal/anzahlSAV - sAVs.get(agentId).gefahreneKilometer;
+  	 //double vehicleDrivenKMReward = sAVs.get(agentId).gefahreneKilometer / 1000.0;
+   	 //double vehicleWorkingTime = sAVs.get(agentId).workingTime / 60.0;
+   	 //double vehicleServiceTime = sAVs.get(agentId).serviceTime / 60;
+     //double vehicleDiffernceServiceTimeToAverage = tagesServicezeitTotal/anzahlSAV - sAVs.get(agentId).serviceTime;
+     //double vehicleDiffernceDrivenKMToAverage = tagesKilometerTotal/anzahlSAV - sAVs.get(agentId).gefahreneKilometer;
     
     
     // collected reward
-    double drivenKMReward = tagesKilometerTotal / 1000.0;
-    //double workingTime = tagesArbeitszeitTotal / 60.0;
-    double serviceTime = tagesServicezeitTotal / 60;
-    //double canceledMobilityOrdersReward = canceledMobilityOrders * 100.0;
+    double drivenDistanceRewardInM = tagesKilometerTotal;
+    double serviceTimeInMin = tagesServicezeitTotal;
 	double executedMobilityOrdersReward = executedMobilityOrder * 100000.0;
 	double executedLogisticOrdersReward = executedLogisticOrder * 100.0;
 	
@@ -1442,6 +1459,11 @@ return distance;]]></Body>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[isSkipCondition]]></Name>
+							<Value Class="CodeValue">
+								<Code><![CDATA[// Location Waiting for Order Delivery - Skip is true. 
+// Skip this agent because no new order will be submitted.
+locations.get(agentId).skipLocation();]]></Code>
+							</Value>
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[isDone]]></Name>
@@ -3328,7 +3350,7 @@ departure point]]></Text>
     			<BarChart>
 					<Id>1603998030067</Id>
 					<Name><![CDATA[Mobilitäts_und_Logistikaufträge]]></Name>
-					<X>1540</X><Y>870</Y>
+					<X>0</X><Y>660</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3446,11 +3468,12 @@ mobilityOrderCounter - canceledMobilityOrders]]></Expression>
 					<DrawLine>true</DrawLine>
 					<Interpolation>LINEAR</Interpolation>
 					<DatasetExpression>  
-						<Title><![CDATA[Gesamte Arbeitszeit in Stunden]]></Title>
+						<Title><![CDATA[Gesamte Servicezeit in Stunden]]></Title>
 					<Id>1620834081950</Id>
 					<Expression><![CDATA[my_dataset]]></Expression>
 					<Color>-3308225</Color>
-					<Expression2><![CDATA[tagesArbeitszeitTotal/6000]]></Expression2>
+					<Expression2><![CDATA[//tagesArbeitszeitTotal/6000
+tagesServicezeitTotal / 60]]></Expression2>
 					<Expression2Flag>true</Expression2Flag>
 						<PointStyle>NONE</PointStyle>
 						<LineWidth>1.0</LineWidth>
@@ -3694,7 +3717,7 @@ mobilityOrderCounter - canceledMobilityOrders]]></Expression>
 				<Image>
 					<Id>1606822222676</Id>
 					<Name><![CDATA[image]]></Name>
-					<X>1580</X><Y>6</Y>
+					<X>1550</X><Y>10</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3716,7 +3739,7 @@ mobilityOrderCounter - canceledMobilityOrders]]></Expression>
 				<Image>
 					<Id>1606822222696</Id>
 					<Name><![CDATA[image3]]></Name>
-					<X>1195</X><Y>6</Y>
+					<X>1190</X><Y>10</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3738,7 +3761,7 @@ mobilityOrderCounter - canceledMobilityOrders]]></Expression>
 				<Image>
 					<Id>1606822222698</Id>
 					<Name><![CDATA[image8]]></Name>
-					<X>1705</X><Y>6</Y>
+					<X>1681</X><Y>5</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3760,7 +3783,7 @@ mobilityOrderCounter - canceledMobilityOrders]]></Expression>
 				<Text>
 					<Id>1606822222706</Id>
 					<Name><![CDATA[text18]]></Name>
-					<X>1704</X><Y>111</Y>
+					<X>1680</X><Y>110</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3781,7 +3804,7 @@ mobilityOrderCounter - canceledMobilityOrders]]></Expression>
 				<Image>
 					<Id>1606843887071</Id>
 					<Name><![CDATA[image7]]></Name>
-					<X>920</X><Y>10</Y>
+					<X>890</X><Y>50</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -4619,8 +4642,7 @@ if(time < 18) {
 					<Properties Width="140" Height="20">
 						<EntryAction><![CDATA[// Note: If this function is used, all code in this state will be used
 // Trigger next action in pathmind
-main.pathmindHelper.triggerNextAction();
-]]></EntryAction>
+main.pathmindHelper.triggerNextAction();]]></EntryAction>
 						<FillColor/>
 					</Properties>
 				</StatechartElement>
@@ -5256,17 +5278,20 @@ if(this.stadtteil != 5)
 					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
 					<ReturnType><![CDATA[double[]]]></ReturnType>
 					<Id>1614361683556</Id>
-					<Name><![CDATA[getLocationToSAVDistances]]></Name>
+					<Name><![CDATA[getToBeDrivenDistances]]></Name>
 					<X>830</X><Y>330</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
-					<Body><![CDATA[double[] listDistances = new double[main.sAVs.size()];
+					<Body><![CDATA[// Get the distances that had to be driven from order list
+double[] listDistances = new double[main.sAVs.size()];
 
-for(int i = 0; i < main.sAVs.size(); i++)
-	listDistances[i] = this.distanceByRoute(main.sAVs.get(i));
-	 
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	listDistances[i] = sav.getSAVToBeDrivenDistance();
+}
+
 return listDistances;]]></Body>
 				</Function>
 				<Function AccessType="default" StaticFunction="false">
@@ -5358,7 +5383,7 @@ main.locationsTriggeredOrders[this.getIndex()]++;]]></Body>
 					<ReturnType><![CDATA[SAV]]></ReturnType>
 					<Id>1625590714971</Id>
 					<Name><![CDATA[getNearestSAVAvaiable]]></Name>
-					<X>830</X><Y>360</Y>
+					<X>830</X><Y>350</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5394,6 +5419,163 @@ if(list.size() / 2 > 0) {
 }
 
 return getNearestAgent(list2);]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double[]]]></ReturnType>
+					<Id>1628084529591</Id>
+					<Name><![CDATA[getAdditionalDistancesFromSAVs]]></Name>
+					<X>830</X><Y>370</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// Get the distances from every SAV to this location
+// The location from the last order from a SAV is taken for the distance 
+
+double[] listDistances = new double[main.sAVs.size()];
+
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	listDistances[i] = sav.getAdditionalDistance(this);
+}
+
+return listDistances;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double[]]]></ReturnType>
+					<Id>1628085417250</Id>
+					<Name><![CDATA[getSAVOrderSize]]></Name>
+					<X>830</X><Y>390</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// Get the distances that had to be driven from order list
+double[] mobOrderSize = new double[main.sAVs.size()];
+
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	mobOrderSize[i] = sav.auftragsliste.size();
+}
+
+return mobOrderSize;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double[]]]></ReturnType>
+					<Id>1628085544363</Id>
+					<Name><![CDATA[getSAVsLastPosition]]></Name>
+					<X>830</X><Y>410</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// Get the distances that had to be driven from order list
+double[] lastPositions = new double[main.sAVs.size()];
+
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	lastPositions[i] = sav.getLastOrderIndex();
+}
+
+return lastPositions;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double[]]]></ReturnType>
+					<Id>1628085718963</Id>
+					<Name><![CDATA[getDistances]]></Name>
+					<X>1120</X><Y>330</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// Get all distances driven from savs
+double[] drivenDistance = new double[main.sAVs.size()];
+
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	drivenDistance[i] = sav.gefahreneKilometer;
+}
+
+return drivenDistance;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double[]]]></ReturnType>
+					<Id>1628085940447</Id>
+					<Name><![CDATA[getServiceTime]]></Name>
+					<X>1120</X><Y>350</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// Get the service time from all savs
+double[] serviceTime = new double[main.sAVs.size()];
+
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	serviceTime[i] = sav.serviceTime;
+}
+
+return serviceTime;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double[]]]></ReturnType>
+					<Id>1628086132730</Id>
+					<Name><![CDATA[getToBeDrivenServiceTime]]></Name>
+					<X>1120</X><Y>390</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// Get the distances that had to be driven from order list
+double[] serviceTime = new double[main.sAVs.size()];
+
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	serviceTime[i] = sav.getSAVToBeDrivenServiceTime();
+}
+
+return serviceTime;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double[]]]></ReturnType>
+					<Id>1628086133309</Id>
+					<Name><![CDATA[getAdditionalServiceTimeFromSAVs]]></Name>
+					<X>1120</X><Y>370</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// Get the additional servciceTime from every SAV to this location with the current order
+// The location from the last order from a SAV is taken for the distance 
+
+double[] listServiceTime = new double[main.sAVs.size()];
+
+for(int i = 0; i < main.sAVs.size(); i++){
+	SAV sav = main.sAVs.get(i);
+	listServiceTime[i] = sav.getAdditionalServiceTime(this);
+}
+
+return listServiceTime;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[boolean]]></ReturnType>
+					<Id>1628091202993</Id>
+					<Name><![CDATA[skipLocation]]></Name>
+					<X>1090</X><Y>150</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[// returns true when the state is activ 
+return Zuteilung.isStateActive(this.wait);]]></Body>
 				</Function>
 			</Functions>
 			<TableFunctions>
@@ -6997,7 +7179,7 @@ return getNearestAgent(list2);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1625651350096</Id>
 					<Name><![CDATA[serviceTime]]></Name>
-					<X>160</X><Y>10</Y>
+					<X>210</X><Y>100</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -8212,7 +8394,7 @@ while(!main.haltstelle.logisticsMainSlot.isEmpty() && main.haltstelle.logisticsM
 					<Id>1620255630050</Id>
 					<Name><![CDATA[isNearMobOrderAvailable]]></Name>
 					<ExcludeFromBuild>true</ExcludeFromBuild>
-					<X>40</X><Y>770</Y>
+					<X>40</X><Y>780</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -8593,6 +8775,18 @@ else {
 }
 
 return time;]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double]]></ReturnType>
+					<Id>1628090673006</Id>
+					<Name><![CDATA[getSAVToBeDrivenServiceTime]]></Name>
+					<X>40</X><Y>760</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[return (this.getSAVToBeDrivenDistance() / 1000.0 / main.savSpeed * 60.0)  + this.auftragsliste.size() * (waitingTimeStart + waitingTimeEnd/60.0);]]></Body>
 				</Function>
 			</Functions>
 			<AgentLinks>
@@ -9251,7 +9445,7 @@ return time;]]></Body>
 					<Name><![CDATA[text]]></Name>
 					<X>390</X><Y>310</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -9272,7 +9466,7 @@ return time;]]></Body>
 					<Name><![CDATA[text1]]></Name>
 					<X>510</X><Y>360</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -9293,7 +9487,7 @@ return time;]]></Body>
 					<Name><![CDATA[text2]]></Name>
 					<X>620</X><Y>780</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -9314,7 +9508,7 @@ return time;]]></Body>
 					<Name><![CDATA[text3]]></Name>
 					<X>720</X><Y>780</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -9335,7 +9529,7 @@ return time;]]></Body>
 					<Name><![CDATA[text4]]></Name>
 					<X>660</X><Y>730</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -9356,7 +9550,7 @@ return time;]]></Body>
 					<Name><![CDATA[text5]]></Name>
 					<X>760</X><Y>730</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -9377,7 +9571,7 @@ return time;]]></Body>
 					<Name><![CDATA[text6]]></Name>
 					<X>710</X><Y>750</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -9398,7 +9592,7 @@ return time;]]></Body>
 					<Name><![CDATA[text7]]></Name>
 					<X>810</X><Y>750</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
-					<PublicFlag>true</PublicFlag>
+					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<DrawMode>SHAPE_DRAW_2D</DrawMode>
@@ -11922,7 +12116,7 @@ getExperimentHost().setPresentable( getEngine().getRoot() );]]></ActionCode>
 
 			<AllowParallelEvaluations>true</AllowParallelEvaluations>
 			<UseFreeformParameters>true</UseFreeformParameters>
-			<NumberOfRuns>500</NumberOfRuns>
+			<NumberOfRuns>1000</NumberOfRuns>
 			<FreeformParamValue>	
 				<Id>1604087921977</Id>
 			</FreeformParamValue>
